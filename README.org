@@ -1,4 +1,4 @@
-#+title: org-agenda-summarize-efforts
+#+title: summarize-agenda-time
 
 Show a summary of the efforts for each day in =org-agenda= views.
 
