@@ -1,0 +1,5 @@
+#+title: org-agenda-summarize-efforts
+
+Show a summary of the efforts for each day in =org-agenda= views.
+
+[[file:2023-11-22-10-21-28_screenshot.png]]
