@@ -1,4 +1,4 @@
-;;; org-agenda-summarize-efforts.el --- Description -*- lexical-binding: t; -*-
+;;; summarize-agenda-time.el --- Description -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2023 Cash Prokop-Weaver
 ;;
@@ -8,7 +8,7 @@
 ;; Modified: November 22, 2023
 ;; Version: 0.0.1
 ;; Keywords: calendar
-;; Homepage: https://github.com/cashweaver/org-agenda-summarize-efforts
+;; Homepage: https://github.com/cashweaver/summarize-agenda-time
 ;; Package-Requires: ((emacs "26.1"))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -21,27 +21,26 @@
 ;;
 ;;; Code:
 
-
-(defgroup org-agenda-summarize-efforts nil
+(defgroup summarize-agenda-time nil
   "Options related to the clocktable-by-tag dblock."
   :tag "Org-agenda Summarize Efforts"
   :group 'org)
 
-(defcustom org-agenda-summarize-efforts--show-max-effort
+(defcustom summarize-agenda-time--show-max-effort
   t
   "Show maximum effort in agenda headline if non-nil."
-  :group 'org-agenda-summarize-efforts
+  :group 'summarize-agenda-time
   :type 'boolean)
 
-(defcustom org-agenda-summarize-efforts--max-effort-minutes
+(defcustom summarize-agenda-time--max-effort-minutes
   (* 8 60)
   "Maximum effort in minutes.
 
 Displayed in agenda headline when `org-agenda-summarize-effort--show-max-effort' is non-nil."
-  :group 'org-agenda-summarize-efforts
+  :group 'summarize-agenda-time
   :type 'number)
 
-(defun org-agenda-summarize-efforts--get-scheduled-duration-in-minutes (pos)
+(defun summarize-agenda-time--get-scheduled-duration-in-minutes (pos)
   "Return the scheduled duration, in minutes, of the heading at POS, or nil."
   (let ((timestamp (org-entry-get pos "SCHEDULED")))
     (when timestamp
@@ -60,7 +59,7 @@ Displayed in agenda headline when `org-agenda-summarize-effort--show-max-effort'
                                   start-org-time)
                60)))))))
 
-(defun org-agenda-summarize-efforts--summarize-efforts (limit)
+(defun summarize-agenda-time--summarize-efforts (limit)
   "Return sum of minutes of effort or scheduled time between point and LIMIT."
   (let (total)
     (save-excursion
@@ -70,7 +69,7 @@ Displayed in agenda headline when `org-agenda-summarize-effort--show-max-effort'
                                       "Effort"))
                (headline-text (org-entry-get pos
                                              "ITEM"))
-               (scheduled-duration-in-minutes (org-agenda-summarize-efforts--get-scheduled-duration-in-minutes pos)))
+               (scheduled-duration-in-minutes (summarize-agenda-time--get-scheduled-duration-in-minutes pos)))
           (message "%s %s %s" headline-text effort scheduled-duration-in-minutes)
           (push (if scheduled-duration-in-minutes
                     scheduled-duration-in-minutes
@@ -83,7 +82,7 @@ Displayed in agenda headline when `org-agenda-summarize-effort--show-max-effort'
                         (cl-remove-if-not 'identity
                                           total))))))
 
-(defun org-agenda-summarize-efforts--get-next-date-header-pos (pos)
+(defun summarize-agenda-time--get-next-date-header-pos (pos)
   "Return position of the next `org-agenda-date-header' after POS, else nil."
   (let ((value t))
     (text-property-any pos
@@ -91,25 +90,25 @@ Displayed in agenda headline when `org-agenda-summarize-effort--show-max-effort'
                        'org-agenda-date-header
                        value)))
 
-(defun org-agenda-summarize-efforts--insert ()
+(defun summarize-agenda-time--insert ()
   "Insert the efforts for each day inside the agenda buffer."
   (save-excursion
     (let (pos)
-      (while (setq pos (org-agenda-summarize-efforts--get-next-date-header-pos (point)))
+      (while (setq pos (summarize-agenda-time--get-next-date-header-pos (point)))
         (goto-char pos)
         (end-of-line)
-        (when-let* ((next-day-pos (org-agenda-summarize-efforts--get-next-date-header-pos (point)))
-                    (effort (org-agenda-summarize-efforts--summarize-efforts next-day-pos))
-                    (effort-text (if org-agenda-summarize-efforts--show-max-effort
+        (when-let* ((next-day-pos (summarize-agenda-time--get-next-date-header-pos (point)))
+                    (effort (summarize-agenda-time--summarize-efforts next-day-pos))
+                    (effort-text (if summarize-agenda-time--show-max-effort
                                      (format " (%s/%s)"
                                              effort
-                                             (org-duration-from-minutes org-agenda-summarize-efforts--max-effort-minutes))
+                                             (org-duration-from-minutes summarize-agenda-time--max-effort-minutes))
                                    (format " %s"
                                            effort))))
           (insert-and-inherit effort-text))
         (forward-line)))))
 
-(add-hook 'org-agenda-finalize-hook 'org-agenda-summarize-efforts--insert)
+(add-hook 'org-agenda-finalize-hook 'summarize-agenda-time--insert)
 
-(provide 'org-agenda-summarize-efforts)
-;;; org-agenda-summarize-efforts.el ends here
+(provide 'summarize-agenda-time)
+;;; summarize-agenda-time.el ends here
