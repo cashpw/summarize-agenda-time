@@ -24,7 +24,8 @@
 
 (defgroup org-agenda-summarize-efforts nil
   "Options related to the clocktable-by-tag dblock."
-  :tag "Org-agenda Summarize Efforts")
+  :tag "Org-agenda Summarize Efforts"
+  :group 'org)
 
 (defcustom org-agenda-summarize-efforts--show-max-effort
   t
