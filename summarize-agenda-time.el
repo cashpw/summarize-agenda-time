@@ -60,6 +60,16 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
                         (cl-remove-if-not 'identity
                                           durations))))))
 
+(defun summarize-agenda-time--has-agenda-date-header-p ()
+  "Return non-nil when the current buffer contains text with the
+`org-agenda-date-header' property."
+  (save-excursion
+    (goto-char (point-min))
+    (text-property-any (point)
+                       (point-max)
+                       'org-agenda-date-header
+                       t)))
+
 (defun summarize-agenda-time--get-day-ranges ()
   "Return list of agenda day start and end positions in current buffer in
 ascending order.
@@ -76,9 +86,9 @@ Ascending order is useful because we can insert text without corrupting our char
           heading-positions)
       (while searching
         (goto-char (text-property-not-all start-pos
-                                      (point-max)
-                                      'org-agenda-date-header
-                                      t))
+                                          (point-max)
+                                          'org-agenda-date-header
+                                          t))
         (let ((next-date-header-pos (text-property-any (point)
                                                        (point-max)
                                                        'org-agenda-date-header
@@ -102,7 +112,6 @@ Ascending order is useful because we can insert text without corrupting our char
 
 (defun summarize-agenda-time--insert-summary (insert-pos start-pos end-pos)
   "Insert agenda time summary at INSERT-POS for headings between START-POS and END-POS."
-  (message "insert-summary: %s, %s, %s" insert-pos start-pos end-pos)
   (when-let* ((total-duration (summarize-agenda-time--get-total-duration start-pos
                                                                          end-pos))
               (summary (if summarize-agenda-time--show-max-duration
@@ -118,14 +127,15 @@ Ascending order is useful because we can insert text without corrupting our char
 
 (defun summarize-agenda-time--summarize ()
   "Insert the durations for each day inside the agenda buffer."
-  (save-excursion
-    (cl-dolist (day-range (summarize-agenda-time--get-day-ranges))
-      (summarize-agenda-time--insert-summary (save-excursion
-                                               (goto-char (plist-get day-range :start-pos))
-                                               (end-of-line)
-                                               (point))
-                                             (plist-get day-range :start-pos)
-                                             (plist-get day-range :end-pos)))))
+  (when (summarize-agenda-time--has-agenda-date-header-p)
+    (save-excursion
+      (cl-dolist (day-range (summarize-agenda-time--get-day-ranges))
+        (summarize-agenda-time--insert-summary (save-excursion
+                                                 (goto-char (plist-get day-range :start-pos))
+                                                 (end-of-line)
+                                                 (point))
+                                               (plist-get day-range :start-pos)
+                                               (plist-get day-range :end-pos))))))
 
 (add-hook 'org-agenda-finalize-hook 'summarize-agenda-time--summarize)
 
