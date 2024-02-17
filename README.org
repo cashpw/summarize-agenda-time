@@ -2,4 +2,4 @@
 
 Show a summary of the efforts for each day in =org-agenda= views.
 
-[[file:2023-11-22-10-21-28_screenshot.png]]
+[[file:summarize-agenda-time.png]]

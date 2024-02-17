@@ -40,7 +40,7 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
   :group 'summarize-agenda-time
   :type 'number)
 
-(defun summarize-agenda-time--get-total-duration (start end)
+(defun summarize-agenda-time--get-total-minutes (start end)
   "Return sum of agenda item durations between START and END points."
   (let (durations)
     (save-excursion
@@ -54,11 +54,10 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
                     effort)
                 durations))
         (forward-line)))
-    (org-duration-from-minutes
-     (cl-reduce #'+
-                (mapcar #'org-duration-to-minutes
-                        (cl-remove-if-not 'identity
-                                          durations))))))
+    (cl-reduce #'+
+               (mapcar #'org-duration-to-minutes
+                       (cl-remove-if-not 'identity
+                                         durations)))))
 
 (defun summarize-agenda-time--has-agenda-date-header-p ()
   "Return non-nil when the current buffer contains text with the
@@ -112,13 +111,18 @@ Ascending order is useful because we can insert text without corrupting our char
 
 (defun summarize-agenda-time--insert-summary (insert-pos start-pos end-pos)
   "Insert agenda time summary at INSERT-POS for headings between START-POS and END-POS."
-  (when-let* ((total-duration (summarize-agenda-time--get-total-duration start-pos
-                                                                         end-pos))
+  (when-let* ((total-minutes (summarize-agenda-time--get-total-minutes start-pos
+                                                                       end-pos))
+              (total-duration (org-duration-from-minutes total-minutes))
               (summary (if summarize-agenda-time--show-max-duration
-                           (let ((max-duration (org-duration-from-minutes summarize-agenda-time--max-duration-minutes)))
-                             (format " (%s/%s)"
+                           (let ((max-duration (org-duration-from-minutes summarize-agenda-time--max-duration-minutes))
+                                 (percentage (round (* 100
+                                                       (/ total-minutes
+                                                          summarize-agenda-time--max-duration-minutes)))))
+                             (format " (%s/%s; %s%%)"
                                      total-duration
-                                     max-duration))
+                                     max-duration
+                                     percentage))
                          (format " (%s)"
                                  total-duration))))
     (save-excursion
