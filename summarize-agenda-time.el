@@ -40,19 +40,32 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
   :group 'summarize-agenda-time
   :type 'number)
 
+(defun summarize-agenda-time--get-property (pom property)
+  "Return value of PROPERTY at POM, else nil."
+  (let ((property-list
+         (org-entry-properties
+          pom
+          property)))
+    (when property-list
+      (cdr
+       (car
+        property-list)))))
+
 (defun summarize-agenda-time--get-total-minutes (start end)
   "Return sum of agenda item durations between START and END points."
   (let (durations)
     (save-excursion
-      (goto-char start)
+      (goto-char
+       start)
       (while (< (point) end)
-        (let* ((marker (org-get-at-bol 'org-hd-marker))
-               (effort (org-entry-get marker "Effort"))
-               (headline-text (org-entry-get marker "ITEM"))
-               (duration (get-text-property (point) 'duration)))
-          (push (or duration
-                    effort)
-                durations))
+        (let ((marker (org-get-at-bol 'org-hd-marker))
+              (duration (get-text-property (point) 'duration)))
+          (org-with-point-at marker
+            (let* ((effort
+                    (summarize-agenda-time--get-property (point) "Effort")))
+              (push (or duration
+                        effort)
+                    durations))))
         (forward-line)))
     (cl-reduce #'+
                (mapcar #'org-duration-to-minutes
