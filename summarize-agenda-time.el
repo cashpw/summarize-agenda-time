@@ -57,20 +57,29 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
     (save-excursion
       (goto-char
        start)
-      (while (< (point) end)
-        (let ((marker (org-get-at-bol 'org-hd-marker))
-              (duration (get-text-property (point) 'duration)))
-          (org-with-point-at marker
-            (let* ((effort
-                    (summarize-agenda-time--get-property (point) "Effort")))
-              (push (or duration
-                        effort)
-                    durations))))
+      (while (< (point)
+                end)
+        (let ((marker
+               (org-get-at-bol
+                'org-hd-marker))
+              (duration
+               (get-text-property
+                (point)
+                'duration))
+              (effort
+               (summarize-agenda-time--get-property
+                marker "Effort")))
+          (push (or duration
+                    effort)
+                durations))
         (forward-line)))
-    (cl-reduce #'+
-               (mapcar #'org-duration-to-minutes
-                       (cl-remove-if-not 'identity
-                                         durations)))))
+    (cl-reduce
+     #'+
+     (mapcar
+      #'org-duration-to-minutes
+      (cl-remove-if-not
+       'identity
+       durations)))))
 
 (defun summarize-agenda-time--has-agenda-date-header-p ()
   "Return non-nil when the current buffer contains text with the
