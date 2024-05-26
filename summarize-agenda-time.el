@@ -26,6 +26,12 @@
   :tag "Org-agenda summarize agenda time"
   :group 'org)
 
+(defcustom summarize-agenda-time--enabled
+  t
+  "Enable agenda time summarizing when non-nil."
+  :group 'summarize-agenda-time
+  :type 'boolean)
+
 (defcustom summarize-agenda-time--show-max-duration
   t
   "Show maximum duration in agenda headline if non-nil."
@@ -39,6 +45,16 @@
 Displayed in agenda headline when `org-agenda-summarize-duration--show-max-duration' is non-nil."
   :group 'summarize-agenda-time
   :type 'number)
+
+(defun summarize-agenda-time-enable ()
+  "Enable agenda time summarization."
+  (setq
+   summarize-agenda-time--enabled t))
+
+(defun summarize-agenda-time-disable ()
+  "Disable agenda time summarization."
+  (setq
+   summarize-agenda-time--enabled nil))
 
 (defun summarize-agenda-time--get-property (pom property)
   "Return value of PROPERTY at POM, else nil."
@@ -153,7 +169,8 @@ Ascending order is useful because we can insert text without corrupting our char
 
 (defun summarize-agenda-time--summarize ()
   "Insert the durations for each day inside the agenda buffer."
-  (when (summarize-agenda-time--has-agenda-date-header-p)
+  (when (and summarize-agenda-time--enabled
+             (summarize-agenda-time--has-agenda-date-header-p))
     (save-excursion
       (cl-dolist (day-range (summarize-agenda-time--get-day-ranges))
         (summarize-agenda-time--insert-summary (save-excursion
