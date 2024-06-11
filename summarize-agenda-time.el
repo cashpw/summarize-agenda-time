@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: calendar
 ;; Homepage: https://github.com/cashweaver/summarize-agenda-time
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "26.1") (dash "2.19.1"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -20,6 +20,8 @@
 ;;  Based on: https://emacs.stackexchange.com/a/52376
 ;;
 ;;; Code:
+
+(require 'dash)
 
 (defgroup summarize-agenda-time nil
   "Options related to the clocktable-by-tag dblock."
@@ -45,6 +47,21 @@
 Displayed in agenda headline when `org-agenda-summarize-duration--show-max-duration' is non-nil."
   :group 'summarize-agenda-time
   :type 'number)
+
+(defcustom summarize-agenda-time--ignore-entry-fns
+  '()
+  "A list of functions which are run during summarization.
+
+Example:
+(lambda (marker)
+  (member
+   (org-with-point-at marker
+    (org-entry-get nil \"ITEM\"))
+   '(\"Foo\", \"Bar\")))
+
+Ignore any headline for which at least one of these functions returns non-nil."
+  :group 'summarize-agenda-time
+  :type '(repeat symbol))
 
 (defun summarize-agenda-time-enable ()
   "Enable agenda time summarization."
@@ -79,19 +96,25 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
                (org-get-at-bol 'type)
                '("scheduled"
                  "past-scheduled"))
-          (let* ((marker
-                  (org-get-at-bol
-                   'org-hd-marker))
-                 (duration
-                  (get-text-property
-                   (point)
-                   'duration))
-                 (effort
-                  (summarize-agenda-time--get-property
-                   marker "Effort")))
-            (push (or duration
-                      effort)
-                  durations)))
+          (let ((marker
+                 (org-get-at-bol
+                  'org-hd-marker)))
+            (message "testing")
+            (unless (--any
+                     (apply it `(,marker))
+                     summarize-agenda-time--ignore-entry-fns)
+              (message "pass")
+              (let ((duration
+                     (get-text-property
+                      (point)
+                      'duration))
+                    (effort
+                     (summarize-agenda-time--get-property
+                      marker
+                      "Effort")))
+                (push (or duration
+                          effort)
+                      durations)))))
         (forward-line)))
     (cl-reduce
      #'+
