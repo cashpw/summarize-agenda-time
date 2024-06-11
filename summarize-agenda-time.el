@@ -75,19 +75,23 @@ Displayed in agenda headline when `org-agenda-summarize-duration--show-max-durat
        start)
       (while (< (point)
                 end)
-        (let ((marker
-               (org-get-at-bol
-                'org-hd-marker))
-              (duration
-               (get-text-property
-                (point)
-                'duration))
-              (effort
-               (summarize-agenda-time--get-property
-                marker "Effort")))
-          (push (or duration
-                    effort)
-                durations))
+        (when (member
+               (org-get-at-bol 'type)
+               '("scheduled"
+                 "past-scheduled"))
+          (let* ((marker
+                  (org-get-at-bol
+                   'org-hd-marker))
+                 (duration
+                  (get-text-property
+                   (point)
+                   'duration))
+                 (effort
+                  (summarize-agenda-time--get-property
+                   marker "Effort")))
+            (push (or duration
+                      effort)
+                  durations)))
         (forward-line)))
     (cl-reduce
      #'+
