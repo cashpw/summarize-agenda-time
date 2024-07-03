@@ -99,11 +99,9 @@ Ignore any headline for which at least one of these functions returns non-nil."
           (let ((marker
                  (org-get-at-bol
                   'org-hd-marker)))
-            (message "testing")
             (unless (--any
                      (apply it `(,marker))
                      summarize-agenda-time--ignore-entry-fns)
-              (message "pass")
               (let ((duration
                      (get-text-property
                       (point)
