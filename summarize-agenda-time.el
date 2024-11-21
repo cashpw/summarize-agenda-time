@@ -21,6 +21,7 @@
 ;;
 ;;; Code:
 
+(require 'cl-lib)
 (require 'dash)
 
 (defgroup summarize-agenda-time nil
@@ -67,15 +68,9 @@ Ignore any headline for which at least one of these functions returns non-nil."
   "Disable agenda time summarization."
   (setq summarize-agenda-time--enabled nil))
 
-(defun summarize-agenda-time--get-property (pom property)
-  "Return value of PROPERTY at POM, else nil."
-  (let ((property-list (org-entry-properties pom property)))
-    (when property-list
-      (cdr (car property-list)))))
-
 (defun summarize-agenda-time--get-total-minutes (start end)
-  "Return sum of agenda item durations between START and END points."
-  (let (durations)
+  "Return sum of agenda item duration minutes between START and END points."
+  (let (duration-minutes)
     (save-excursion
       (goto-char start)
       (while (< (point) end)
@@ -84,15 +79,11 @@ Ignore any headline for which at least one of these functions returns non-nil."
             (unless (--any
                      (apply it `(,marker))
                      summarize-agenda-time--ignore-entry-fns)
-              (let ((duration (get-text-property (point) 'duration))
-                    (effort
-                     (summarize-agenda-time--get-property marker "Effort")))
-                (push (or duration effort) durations)))))
+              (push (or (get-text-property (point) 'duration)
+                        (get-text-property (point) 'effort-minutes))
+                    duration-minutes))))
         (forward-line)))
-    (cl-reduce
-     #'+
-     (mapcar
-      #'org-duration-to-minutes (cl-remove-if-not 'identity durations)))))
+    (cl-reduce #'+ (cl-remove-if-not 'identity duration-minutes))))
 
 (defun summarize-agenda-time--has-agenda-date-header-p ()
   "Return non-nil when the current buffer contains text with the
